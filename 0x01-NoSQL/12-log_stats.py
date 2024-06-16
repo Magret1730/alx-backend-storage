@@ -24,11 +24,24 @@ def log_stats():
     status_check = collection\
         .count_documents({"method": "GET", "path": "/status"})
 
+    # Aggregate pipeline to get top 10 IPs by count
+    pipeline = [
+        {"$group": {"_id": "$ip", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 10}
+    ]
+
+    # Execute aggregation pipeline
+    top_ips = list(collection.aggregate(pipeline))
+
     print(f"{total_logs} logs")
     print("Methods:")
     for method in methods:
         print(f"\tmethod {method}: {method_counts[method]}")
     print(f"{status_check} status check")
+    print("IPs:")
+    for ip in top_ips:
+        print(f"\t{ip['_id']}: {ip['count']}")
 
 
 if __name__ == "__main__":
