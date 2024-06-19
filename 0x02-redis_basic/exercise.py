@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-""" Task 0 """
+"""Module declares a redis class and methods"""
 import random
 import redis
 import uuid
@@ -15,7 +15,7 @@ class Cache:
         Initialize the Redis client and store it as a private variable
         Also flush the Redis database
         """
-        self._redis = redis.Redis()
+        self._redis = redis.Redis(host='localhost', port=6379, db=0)
         self._redis.flushdb  # Flush the Redis database
 
     def store(self, data: Union[str, int, float, bytes]) -> str:
@@ -29,17 +29,6 @@ class Cache:
             str: The generated random key.
         """
         random_key = str(uuid.uuid4())  # Generate a random key using uuid4
-
-        # Debug print statement
-        # print(f"Generated key: {random_key}")
-        # Store the data in Redis with the generated key
-        try:
-            self._redis.set(random_key, data)
-            # Verify that the data was stored
-            stored_data = self._redis.get(random_key)
-            # print(f"Attempted to store data: {data}")
-            # print(f"Stored data: {stored_data}")
-        except Exception as e:
-            print(f"Error storing data: {e}")
+        self._redis.set(random_key, data)
 
         return random_key
