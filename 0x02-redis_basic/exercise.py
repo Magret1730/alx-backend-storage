@@ -2,7 +2,30 @@
 """Module declares a redis class and methods"""
 import redis
 import uuid
+from functools import wraps
 from typing import Union, Optional, Callable
+
+
+def count_calls(method: Callable) -> Callable:
+    """
+    Decorator to count how many times a method is called.
+
+    Args:
+        method (Callable): The method to be decorated.
+    Returns:
+        Callable: The wrapped method.
+    """
+    @wraps(method)
+    def wrapper(self, *args, **kwargs):
+        # Construct the key using the method's qualified name
+        key = f"{method.__qualname__}"
+        # print(key)
+        # Increment the counter in Redis
+        self._redis.incr(key)
+        # Call the original method
+        return method(self, *args, **kwargs)
+
+    return wrapper
 
 
 class Cache:
@@ -17,6 +40,7 @@ class Cache:
         self._redis = redis.Redis(host='localhost', port=6379, db=0)
         self._redis.flushdb()
 
+    @count_calls
     def store(self, data: Union[str, int, float, bytes]) -> str:
         """
         Store the input data in Redis using a random key and return the key.
